@@ -11,7 +11,6 @@ import streamlit.components.v1 as components
 import networkx as nx
 import snowflake.connector
 from pyvis.network import Network
-import matplotlib.pyplot as plt
 
 ##############################################################
 
