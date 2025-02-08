@@ -26,7 +26,6 @@ conn = snowflake.connector.connect(
 # Query to get the data
 query = """
 WITH transaction_paths AS (
-    -- Step 1: Start with all transactions as starting points
     SELECT 
         sender_account AS start_account,
         beneficiary_account AS current_account,
@@ -43,7 +42,6 @@ WITH transaction_paths AS (
 
     UNION ALL
 
-    -- Step 2: Extend paths by finding valid next transactions
     SELECT 
         tp.start_account,
         t.beneficiary_account,
@@ -63,13 +61,13 @@ WITH transaction_paths AS (
             WHERE tp.current_account = t.sender_account
             AND t.transaction_date > tp.current_date
             AND t.transaction_amount BETWEEN tp.current_amount * 0.9 AND tp.current_amount * 1.1
-            AND NOT ARRAY_CONTAINS(tp.account_path, ARRAY_CONSTRUCT(t.beneficiary_account)) -- Prevent cycles before completing loop
+            AND NOT ARRAY_CONTAINS(tp.account_path, ARRAY_CONSTRUCT(t.beneficiary_account))
         ) t
 )
 SELECT account_path, date_path, amount_path, id_path, depth
 FROM transaction_paths
-WHERE current_account = start_account  -- Ensure loop completion
-AND depth > 2  -- At least one intermediate transaction
+WHERE current_account = start_account
+AND depth > 2
 ORDER BY start_date
 """
 
