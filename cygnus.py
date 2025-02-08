@@ -116,7 +116,7 @@ for idx, row in df.iterrows():
 df = pd.DataFrame(rows, columns=["index", "transaction_id", "sender_account", "beneficiary_account", "transaction_date", "transaction_amount"]).set_index("index")
 
 # Calculate %diff from previous row if index is same
-df['amount_diff'] = df.groupby('index')['transaction_amount'].pct_change()*100
+df['amount_diff'] = round(df.groupby('index')['transaction_amount'].pct_change()*100, 2)
 
 ##############################################################
 
@@ -147,7 +147,7 @@ else:
         G.add_node(row["beneficiary_account"], label=str(row["beneficiary_account"]), color="#2196F3")  # Blue receiver
         G.add_edge(
             row["sender_account"], row["beneficiary_account"],
-            title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}\n\% Diff: {row['amount_diff']}",  # Tooltip when hovering
+            title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}\n% Diff: {row['amount_diff']}",  # Tooltip when hovering
             label=f"{row['transaction_id']}\n\${row['transaction_amount']}\n{row['transaction_date']}\n{row['amount_diff']}",  # Visible label
             color="#FF9800"  # Orange edges
         )
