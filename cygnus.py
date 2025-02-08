@@ -116,8 +116,8 @@ for idx, row in df.iterrows():
 df = pd.DataFrame(rows, columns=["index", "transaction_id", "sender_account", "beneficiary_account", "transaction_date", "transaction_amount"]).set_index("index")
 
 # Calculate %diff from previous row if index is same
-df['amount_diff'] = round(df.groupby('index')['transaction_amount'].pct_change()*100, 4)
-df['amount_diff'] = df['amount_diff'].fillna(0)
+df['percentage_difference'] = round(df.groupby('index')['transaction_amount'].pct_change()*100, 4)
+df['percentage_difference'] = df['percentage_difference'].fillna(0)
 
 ##############################################################
 
@@ -148,8 +148,8 @@ else:
         G.add_node(row["beneficiary_account"], label=str(row["beneficiary_account"]), color="#2196F3")  # Blue receiver
         G.add_edge(
             row["sender_account"], row["beneficiary_account"],
-            title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}\nChange: {row['amount_diff']}%",  # Tooltip when hovering
-            label=f"{row['transaction_id']}\n\${row['transaction_amount']}\n{row['transaction_date']}\n{row['amount_diff']}",  # Visible label
+            title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}\nChange: {row['percentage_difference']}%",  # Tooltip when hovering
+            label=f"{row['transaction_id']}\n\${row['transaction_amount']}\n{row['transaction_date']}\n{row['percentage_difference']}",  # Visible label
             color="#FF9800"  # Orange edges
         )
 
@@ -193,6 +193,6 @@ else:
     components.html(HtmlFile.read(), height=435)
 
     # Show the DataFrame
-    st.write(df_select[['transaction_id', 'transaction_date', 'sender_account', 'beneficiary_account', 'transaction_amount']])
+    st.write(df_select[['transaction_id', 'transaction_date', 'sender_account', 'beneficiary_account', 'transaction_amount', 'percentage_difference']].reset_index(drop=True, inplace=True))
 
 ##############################################################
