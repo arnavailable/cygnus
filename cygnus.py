@@ -29,40 +29,40 @@ query = """
 WITH transaction_paths AS (
     -- Step 1: Start with all transactions as starting points
     SELECT 
-        sender AS start_account,
-        receiver AS current_account,
-        amount AS start_amount,
-        amount AS current_amount,
-        date AS start_date,
-        date AS current_date,
-        ARRAY_CONSTRUCT(sender, receiver) AS path,
-        ARRAY_CONSTRUCT(date) AS date_path,
-        ARRAY_CONSTRUCT(amount) AS amount_path,
+        sender_account AS start_account,
+        beneficiary_account AS current_account,
+        transaction_amount AS start_amount,
+        transaction_amount AS current_amount,
+        transaction_date AS start_date,
+        transaction_date AS current_date,
+        ARRAY_CONSTRUCT(sender_account, beneficiary_account) AS path,
+        ARRAY_CONSTRUCT(transaction_date) AS date_path,
+        ARRAY_CONSTRUCT(transaction_amount) AS amount_path,
         1 AS depth
-    FROM "CYGNUS"."PUBLIC"."LOOPS"
+    FROM "CYGNUS"."PUBLIC"."TRANSACTIONS"
 
     UNION ALL
 
     -- Step 2: Extend paths by finding valid next transactions
     SELECT 
         tp.start_account,
-        t.receiver,
+        t.beneficiary_account,
         tp.start_amount,
-        t.amount,
+        t.transaction_amount,
         tp.start_date,
-        t.date,
-        ARRAY_APPEND(tp.path, t.receiver),
-        ARRAY_APPEND(tp.date_path, t.date),
-        ARRAY_APPEND(tp.amount_path, t.amount),
+        t.transaction_date,
+        ARRAY_APPEND(tp.path, t.beneficiary_account),
+        ARRAY_APPEND(tp.date_path, t.transaction_date),
+        ARRAY_APPEND(tp.amount_path, t.transaction_amount),
         tp.depth + 1
     FROM transaction_paths tp,
          LATERAL (
             SELECT *
-            FROM "CYGNUS"."PUBLIC"."LOOPS" t
-            WHERE tp.current_account = t.sender
-            AND t.date > tp.current_date
-            AND t.amount BETWEEN tp.current_amount * 0.9 AND tp.current_amount * 1.1
-            AND NOT ARRAY_CONTAINS(tp.path, ARRAY_CONSTRUCT(t.receiver)) -- Prevent cycles before completing loop
+            FROM "CYGNUS"."PUBLIC"."TRANSACTIONS" t
+            WHERE tp.current_account = t.sender_account
+            AND t.transaction_date > tp.current_date
+            AND t.transaction_amount BETWEEN tp.current_amount * 0.9 AND tp.current_amount * 1.1
+            AND NOT ARRAY_CONTAINS(tp.path, ARRAY_CONSTRUCT(t.beneficiary_account)) -- Prevent cycles before completing loop
         ) t
 )
 SELECT path, date_path, amount_path, depth
