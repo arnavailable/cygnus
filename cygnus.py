@@ -23,10 +23,10 @@ conn = snowflake.connector.connect(
     schema = st.secrets["SCHEMA"]
 )
 
-# Query to get the data
+# Query to get data from Snowflake
 query = """
 WITH transaction_paths AS (
-    SELECT 
+    SELECT
         sender_account AS start_account,
         beneficiary_account AS current_account,
         transaction_amount AS start_amount,
@@ -57,7 +57,7 @@ WITH transaction_paths AS (
     FROM transaction_paths tp,
          LATERAL (
             SELECT *
-            FROM "CYGNUS"."PUBLIC"."TRANSACTIONS" t
+            FROM "CYGNUS"."PUBLIC"."TEMP" t
             WHERE tp.current_account = t.sender_account
             AND t.transaction_date > tp.current_date
             AND t.transaction_amount BETWEEN tp.current_amount * 0.9 AND tp.current_amount * 1.1
