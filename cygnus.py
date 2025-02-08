@@ -191,3 +191,8 @@ else:
 
     # Load HTML file in HTML component for display on Streamlit page
     components.html(HtmlFile.read(), height=435)
+
+    # Show the DataFrame
+    st.write(df_select)
+
+##############################################################
