@@ -116,13 +116,32 @@ for idx, row in df.iterrows():
 df = pd.DataFrame(rows, columns=["index", "transaction_id", "sender_account", "beneficiary_account", "transaction_date", "transaction_amount"]).set_index("index")
 
 # Calculate %diff from previous row if index is same
-df['amount_diff'] = round(df.groupby('index')['transaction_amount'].pct_change()*100, 4)
+df['amount_diff'] = round(df.groupby('index')['transaction_amount'].pct_change()*100, 3)
 df['amount_diff'] = df['amount_diff'].fillna(0)
 
 ##############################################################
 
 # Set header title
 st.title('Network Graph Visualization of Transaction Loops')
+
+# Legend using Markdown with HTML
+st.markdown(
+    """
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 15px; height: 15px; background-color: #2196F3; border-radius: 50%;"></div>
+        <span>Origination Account</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+        <div style="width: 15px; height: 15px; background-color: #4CAF50; border-radius: 50%;"></div>
+        <span>Intermediary Accounts</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+        <div style="width: 15px; height: 15px; background-color: #FF9800; border-radius: 50%;"></div>
+        <span>Transaction Edge</span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # Define list of selection options
 suspicious_accounts = df.sender_account.unique()
