@@ -122,7 +122,7 @@ df['percentage_difference'] = df['percentage_difference'].fillna(0)
 ##############################################################
 
 # Set header title
-st.title('Network Graph Visualization of Transaction Loops')
+st.title('Visualization of Transaction Loops')
 
 # Define list of selection options
 suspicious_accounts = df.sender_account.unique()
