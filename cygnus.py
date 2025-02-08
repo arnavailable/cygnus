@@ -148,7 +148,7 @@ else:
         G.add_node(row["beneficiary_account"], label=str(row["beneficiary_account"]), color="#2196F3")  # Blue receiver
         G.add_edge(
             row["sender_account"], row["beneficiary_account"],
-            #title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}\nChange: {row['amount_diff']}%",  # Tooltip when hovering
+            title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}\nChange: {row['amount_diff']}%",  # Tooltip when hovering
             label=f"{row['transaction_id']}\n\${row['transaction_amount']}\n{row['transaction_date']}\n{row['amount_diff']}",  # Visible label
             color="#FF9800"  # Orange edges
         )
@@ -162,9 +162,33 @@ else:
     # Improve layout with physics settings
     account_network.repulsion(node_distance=300, central_gravity=0.3, spring_length=100, spring_strength=0.1, damping=0.9)
 
-    # Force edge labels to show
+    # # Force edge labels to show
+    # for edge in account_network.edges:
+    #     edge["font"] = {"size": 12, "color": "white", "background": "black"}
+
+    # Ensure edge labels are always visible
     for edge in account_network.edges:
-        edge["font"] = {"size": 12, "color": "white", "background": "black"}
+        edge["font"] = {"size": 14, "color": "white", "background": "black", "strokeWidth": 2}
+
+    # Use hierarchical layout to prevent label overlap
+    account_network.toggle_physics(False)  # Optional: Disable physics for better label positioning
+    account_network.set_options("""
+    var options = {
+    "edges": {
+        "smooth": false,
+        "arrows": {
+        "to": {"enabled": true}
+        }
+    },
+    "layout": {
+        "hierarchical": {
+        "enabled": true,
+        "direction": "UD",
+        "sortMethod": "directed"
+        }
+    }
+    }
+    """)
 
     # Legend using Markdown with HTML
     st.markdown(
