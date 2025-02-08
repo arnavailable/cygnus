@@ -124,25 +124,6 @@ df['amount_diff'] = df['amount_diff'].fillna(0)
 # Set header title
 st.title('Network Graph Visualization of Transaction Loops')
 
-# Legend using Markdown with HTML
-st.markdown(
-    """
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <div style="width: 15px; height: 15px; background-color: #2196F3; border-radius: 50%;"></div>
-        <span>Origination Account</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
-        <div style="width: 15px; height: 15px; background-color: #4CAF50; border-radius: 50%;"></div>
-        <span>Intermediary Accounts</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
-        <div style="width: 15px; height: 15px; background-color: #FF9800; border-radius: 50%;"></div>
-        <span>Transaction Edge</span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 # Define list of selection options
 suspicious_accounts = df.sender_account.unique()
 suspicious_accounts.sort()
@@ -184,6 +165,17 @@ else:
     # Force edge labels to show
     for edge in account_network.edges:
         edge["font"] = {"size": 12, "color": "white", "background": "black"}
+
+    # Legend using Markdown with HTML
+    st.markdown(
+        '<div style="display: flex; align-items: center; gap: 15px;">' +
+        ''.join(f'<div style="display: flex; align-items: center; gap: 5px;">'
+                f'<div style="width: 15px; height: 15px; background-color: {color}; border-radius: 50%;"></div>'
+                f'<span>{label}</span></div>'
+                for label, color in [("Origination Account", "#2196F3"),
+                                    ("Intermediary Accounts", "#4CAF50"),
+                                    ("Transaction Edge", "#FF9800")]) +
+        '</div>', unsafe_allow_html=True)
 
     # Save and read graph as HTML file (on Streamlit Sharing)
     try:
