@@ -162,33 +162,9 @@ else:
     # Improve layout with physics settings
     account_network.repulsion(node_distance=300, central_gravity=0.3, spring_length=100, spring_strength=0.1, damping=0.9)
 
-    # # Force edge labels to show
-    # for edge in account_network.edges:
-    #     edge["font"] = {"size": 12, "color": "white", "background": "black"}
-
-    # Ensure edge labels are always visible
+    # Force edge labels to show
     for edge in account_network.edges:
-        edge["font"] = {"size": 14, "color": "white", "background": "black", "strokeWidth": 2}
-
-    # Use hierarchical layout to prevent label overlap
-    account_network.toggle_physics(False)  # Optional: Disable physics for better label positioning
-    account_network.set_options("""
-    var options = {
-    "edges": {
-        "smooth": false,
-        "arrows": {
-        "to": {"enabled": true}
-        }
-    },
-    "layout": {
-        "hierarchical": {
-        "enabled": true,
-        "direction": "UD",
-        "sortMethod": "directed"
-        }
-    }
-    }
-    """)
+        edge["font"] = {"size": 12, "color": "white", "background": "black"}
 
     # Legend using Markdown with HTML
     st.markdown(
