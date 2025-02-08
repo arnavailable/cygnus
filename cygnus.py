@@ -35,9 +35,10 @@ WITH transaction_paths AS (
         transaction_amount AS current_amount,
         transaction_date AS start_date,
         transaction_date AS current_date,
-        ARRAY_CONSTRUCT(sender_account, beneficiary_account) AS path,
+        ARRAY_CONSTRUCT(sender_account, beneficiary_account) AS account_path,
         ARRAY_CONSTRUCT(transaction_date) AS date_path,
         ARRAY_CONSTRUCT(transaction_amount) AS amount_path,
+        ARRAY_CONSTRUCT(transaction_id) AS id_path,
         1 AS depth
     FROM "CYGNUS"."PUBLIC"."TRANSACTIONS"
 
@@ -51,9 +52,10 @@ WITH transaction_paths AS (
         t.transaction_amount,
         tp.start_date,
         t.transaction_date,
-        ARRAY_APPEND(tp.path, t.beneficiary_account),
+        ARRAY_APPEND(tp.account_path, t.beneficiary_account),
         ARRAY_APPEND(tp.date_path, t.transaction_date),
         ARRAY_APPEND(tp.amount_path, t.transaction_amount),
+        ARRAY_APPEND(tp.id_path, t.transaction_id),
         tp.depth + 1
     FROM transaction_paths tp,
          LATERAL (
@@ -62,10 +64,10 @@ WITH transaction_paths AS (
             WHERE tp.current_account = t.sender_account
             AND t.transaction_date > tp.current_date
             AND t.transaction_amount BETWEEN tp.current_amount * 0.9 AND tp.current_amount * 1.1
-            AND NOT ARRAY_CONTAINS(tp.path, ARRAY_CONSTRUCT(t.beneficiary_account)) -- Prevent cycles before completing loop
+            AND NOT ARRAY_CONTAINS(tp.account_path, ARRAY_CONSTRUCT(t.beneficiary_account)) -- Prevent cycles before completing loop
         ) t
 )
-SELECT path, date_path, amount_path, depth
+SELECT account_path, date_path, amount_path, id_path, depth
 FROM transaction_paths
 WHERE current_account = start_account  -- Ensure loop completion
 AND depth > 2  -- At least one intermediate transaction
@@ -89,12 +91,13 @@ conn.close()
 ##############################################################
 
 # Process the output
-df.columns = ['path', 'date_path', 'amount_path', 'depth']
+df.columns = ['path', 'date_path', 'amount_path', 'id_path', 'depth']
 
 # Clean path, date_path, and amount_path columns by removing \n from array
 df['path'] = df['path'].apply(lambda x: eval(x))
 df['date_path'] = df['date_path'].apply(lambda x: eval(x))
 df['amount_path'] = df['amount_path'].apply(lambda x: eval(x))
+df['id_path'] = df['id_path'].apply(lambda x: eval(x))
 
 # Expand lists into rows while keeping the original index
 rows = []
@@ -102,6 +105,7 @@ for idx, row in df.iterrows():
     for i in range(len(row["date_path"])):
         rows.append([
             idx,  # Preserve original index
+            row["id_path"][i],
             row["path"][i],
             row["path"][i + 1],
             row["date_path"][i],
@@ -109,7 +113,7 @@ for idx, row in df.iterrows():
         ])
 
 # Create new DataFrame
-df = pd.DataFrame(rows, columns=["index", "account_send", "account_receive", "date", "amount"]).set_index("index")
+df = pd.DataFrame(rows, columns=["index", "transaction_id", "sender_account", "beneficiary_account", "transaction_date", "transaction_amount"]).set_index("index")
 
 ##############################################################
 
@@ -117,11 +121,11 @@ df = pd.DataFrame(rows, columns=["index", "account_send", "account_receive", "da
 st.title('Network Graph Visualization of Transaction Loops')
 
 # Define list of selection options
-suspicious_accounts = df.account_send.unique()
+suspicious_accounts = df.sender_account.unique()
 suspicious_accounts.sort()
 
 # Implement multiselect dropdown menu for option selection (returns a list)
-selected_account = st.selectbox('Select account to visualize', suspicious_accounts)
+selected_account = st.selectbox('Select account number', suspicious_accounts)
 
 # Set info message on initial site load
 if not selected_account:
@@ -129,19 +133,19 @@ if not selected_account:
 
 # Create network graph when user selects >= 1 item
 else:
-    df_select = df[df.index == df[df.account_send == selected_account].index[0]]
+    df_select = df[df.index == df[df.sender_account == selected_account].index[0]]
 
     # Create a directed graph
     G = nx.DiGraph()
 
     # Add nodes and edges with attributes
     for _, row in df_select.iterrows():
-        G.add_node(row["account_send"], label=str(row["account_send"]), color="#4CAF50")  # Green sender
-        G.add_node(row["account_receive"], label=str(row["account_receive"]), color="#2196F3")  # Blue receiver
+        G.add_node(row["sender_account"], label=str(row["sender_account"]), color="#4CAF50")  # Green sender
+        G.add_node(row["beneficiary_account"], label=str(row["beneficiary_account"]), color="#2196F3")  # Blue receiver
         G.add_edge(
-            row["account_send"], row["account_receive"],
-            title=f"Amount: ${row['amount']}\nDate: {row['date']}",  # Tooltip when hovering
-            label=f"${row['amount']}\n{row['date']}",  # Visible label
+            row["sender_account"], row["beneficiary_account"],
+            title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}",  # Tooltip when hovering
+            label=f"{row['transaction_id']}\n${row['transaction_amount']}\n{row['transaction_date']}",  # Visible label
             color="#FF9800"  # Orange edges
         )
 
