@@ -149,7 +149,7 @@ else:
         G.add_edge(
             row["sender_account"], row["beneficiary_account"],
             title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}\nChange: {row['percentage_difference']}%",  # Tooltip when hovering
-            label=f"{row['transaction_id']}\n\${row['transaction_amount']}\n{row['transaction_date']}\n{row['percentage_difference']}",  # Visible label
+            label=f"{row['transaction_id']}\n${row['transaction_amount']}\n{row['transaction_date']}\n{row['percentage_difference']}",  # Visible label
             color="#FF9800"  # Orange edges
         )
 
@@ -193,6 +193,6 @@ else:
     components.html(HtmlFile.read(), height=435)
 
     # Show the DataFrame
-    st.write(df_select[['transaction_id', 'transaction_date', 'sender_account', 'beneficiary_account', 'transaction_amount', 'percentage_difference']].reset_index(drop=True, inplace=True))
+    st.write(df_select[['transaction_id', 'transaction_date', 'sender_account', 'beneficiary_account', 'transaction_amount', 'percentage_difference']].reset_index(drop=True))
 
 ##############################################################
