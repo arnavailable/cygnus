@@ -121,33 +121,32 @@ df['percentage_difference'] = df['percentage_difference'].fillna(0)
 # Set header title
 st.title('Visualization of Transaction Loops')
 
-# Define list of selection options
+# Unique accounts that are part of a loop
 suspicious_accounts = df.sender_account.unique()
 suspicious_accounts.sort()
 
-# Implement multiselect dropdown menu for option selection (returns a list)
+# Choose account number
 selected_account = st.selectbox('Select account number', suspicious_accounts)
 
-# Set info message on initial site load
+# Choose account number to start
 if not selected_account:
     st.text('Choose an account number to start')
 
-# Create network graph when user selects >= 1 item
+# Create loops
 else:
     df_select = df[df.index == df[df.sender_account == selected_account].index[0]]
 
-    # Create a directed graph
     G = nx.DiGraph()
 
     # Add nodes and edges with attributes
     for _, row in df_select.iterrows():
-        G.add_node(row["sender_account"], label=str(row["sender_account"]), color="#4CAF50")  # Green sender
-        G.add_node(row["beneficiary_account"], label=str(row["beneficiary_account"]), color="#2196F3")  # Blue receiver
+        G.add_node(row["sender_account"], label=str(row["sender_account"]), color="#4CAF50")
+        G.add_node(row["beneficiary_account"], label=str(row["beneficiary_account"]), color="#2196F3")
         G.add_edge(
             row["sender_account"], row["beneficiary_account"],
-            title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}\nChange: {row['percentage_difference']}%",  # Tooltip when hovering
-            label=f"{row['transaction_id']}\n${row['transaction_amount']}\n{row['transaction_date']}\n{row['percentage_difference']}",  # Visible label
-            color="#FF9800"  # Orange edges
+            title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}\nChange: {row['percentage_difference']}%",
+            label=f"{row['transaction_id']}\n${row['transaction_amount']}\n{row['transaction_date']}\n{row['percentage_difference']}",
+            color="#FF9800"
         )
 
     # Create PyVis Network
@@ -156,14 +155,12 @@ else:
     # Convert NetworkX graph to PyVis
     account_network.from_nx(G)
 
-    # Improve layout with physics settings
     account_network.repulsion(node_distance=300, central_gravity=0.3, spring_length=100, spring_strength=0.1, damping=0.9)
 
-    # Force edge labels to show
     for edge in account_network.edges:
         edge["font"] = {"size": 12, "color": "white", "background": "black"}
 
-    # Legend using Markdown with HTML
+    # Legend
     st.markdown(
         '<div style="display: flex; align-items: center; gap: 15px;">' +
         ''.join(f'<div style="display: flex; align-items: center; gap: 5px;">'
@@ -174,19 +171,18 @@ else:
                                     ("Transaction Edge", "#FF9800")]) +
         '</div>', unsafe_allow_html=True)
 
-    # Save and read graph as HTML file (on Streamlit Sharing)
+    # Save and read graph
     try:
         path = '/tmp'
         account_network.save_graph(f'{path}/pyvis_graph.html')
         HtmlFile = open(f'{path}/pyvis_graph.html', 'r', encoding='utf-8')
 
-    # Save and read graph as HTML file (locally)
     except:
         path = '/html_files'
         account_network.save_graph(f'{path}/pyvis_graph.html')
         HtmlFile = open(f'{path}/pyvis_graph.html', 'r', encoding='utf-8')
 
-    # Load HTML file in HTML component for display on Streamlit page
+    # Load HTML file in HTML component
     components.html(HtmlFile.read(), height=435)
 
     # Show the DataFrame
