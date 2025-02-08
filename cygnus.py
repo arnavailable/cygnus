@@ -3,8 +3,7 @@
 
 ##############################################################
 
-# Import all the necessary libraries
-import numpy as np
+# Import all necessary libraries
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
@@ -40,7 +39,7 @@ WITH transaction_paths AS (
         ARRAY_CONSTRUCT(transaction_amount) AS amount_path,
         ARRAY_CONSTRUCT(transaction_id) AS id_path,
         1 AS depth
-    FROM "CYGNUS"."PUBLIC"."LOOPS"
+    FROM "CYGNUS"."PUBLIC"."LOOOPS"
 
     UNION ALL
 
@@ -60,7 +59,7 @@ WITH transaction_paths AS (
     FROM transaction_paths tp,
          LATERAL (
             SELECT *
-            FROM "CYGNUS"."PUBLIC"."LOOPS" t
+            FROM "CYGNUS"."PUBLIC"."LOOOPS" t
             WHERE tp.current_account = t.sender_account
             AND t.transaction_date > tp.current_date
             AND t.transaction_amount BETWEEN tp.current_amount * 0.9 AND tp.current_amount * 1.1
