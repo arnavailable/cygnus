@@ -38,7 +38,7 @@ WITH transaction_paths AS (
         ARRAY_CONSTRUCT(transaction_amount) AS amount_path,
         ARRAY_CONSTRUCT(transaction_id) AS id_path,
         1 AS depth
-    FROM "CYGNUS"."PUBLIC"."TRANSACTIONS"
+    FROM "CYGNUS"."PUBLIC"."LOOPS"
 
     UNION ALL
 
@@ -57,7 +57,7 @@ WITH transaction_paths AS (
     FROM transaction_paths tp,
          LATERAL (
             SELECT *
-            FROM "CYGNUS"."PUBLIC"."TRANSACTIONS" t
+            FROM "CYGNUS"."PUBLIC"."LOOPS" t
             WHERE tp.current_account = t.sender_account
             AND t.transaction_date > tp.current_date
             AND t.transaction_amount BETWEEN tp.current_amount * 0.9 AND tp.current_amount * 1.1
