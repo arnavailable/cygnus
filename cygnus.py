@@ -193,6 +193,6 @@ else:
     components.html(HtmlFile.read(), height=435)
 
     # Show the DataFrame
-    st.write(df_select)
+    st.write(df_select[['transaction_id', 'transaction_date', 'sender_account', 'beneficiary_account', 'transaction_amount']])
 
 ##############################################################
