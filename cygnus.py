@@ -116,7 +116,8 @@ for idx, row in df.iterrows():
 df = pd.DataFrame(rows, columns=["index", "transaction_id", "sender_account", "beneficiary_account", "transaction_date", "transaction_amount"]).set_index("index")
 
 # Calculate %diff from previous row if index is same
-df['amount_diff'] = round(df.groupby('index')['transaction_amount'].pct_change()*100, 2)
+df['amount_diff'] = round(df.groupby('index')['transaction_amount'].pct_change()*100, 4)
+df['amount_diff'] = df['amount_diff'].fillna(0)
 
 ##############################################################
 
