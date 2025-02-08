@@ -40,7 +40,7 @@ WITH transaction_paths AS (
         ARRAY_CONSTRUCT(transaction_amount) AS amount_path,
         ARRAY_CONSTRUCT(transaction_id) AS id_path,
         1 AS depth
-    FROM "CYGNUS"."PUBLIC"."TRANSACTIONS"
+    FROM "CYGNUS"."PUBLIC"."LOOPS"
 
     UNION ALL
 
@@ -60,7 +60,7 @@ WITH transaction_paths AS (
     FROM transaction_paths tp,
          LATERAL (
             SELECT *
-            FROM "CYGNUS"."PUBLIC"."TRANSACTIONS" t
+            FROM "CYGNUS"."PUBLIC"."LOOPS" t
             WHERE tp.current_account = t.sender_account
             AND t.transaction_date > tp.current_date
             AND t.transaction_amount BETWEEN tp.current_amount * 0.9 AND tp.current_amount * 1.1
@@ -115,6 +115,9 @@ for idx, row in df.iterrows():
 # Create new DataFrame
 df = pd.DataFrame(rows, columns=["index", "transaction_id", "sender_account", "beneficiary_account", "transaction_date", "transaction_amount"]).set_index("index")
 
+# Calculate %diff from previous row if index is same
+df['amount_diff'] = df.groupby('index')['transaction_amount'].pct_change()*100
+
 ##############################################################
 
 # Set header title
@@ -129,7 +132,7 @@ selected_account = st.selectbox('Select account number', suspicious_accounts)
 
 # Set info message on initial site load
 if not selected_account:
-    st.text('Choose an account to start')
+    st.text('Choose an account number to start')
 
 # Create network graph when user selects >= 1 item
 else:
@@ -144,8 +147,8 @@ else:
         G.add_node(row["beneficiary_account"], label=str(row["beneficiary_account"]), color="#2196F3")  # Blue receiver
         G.add_edge(
             row["sender_account"], row["beneficiary_account"],
-            title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}",  # Tooltip when hovering
-            label=f"{row['transaction_id']}\n${row['transaction_amount']}\n{row['transaction_date']}",  # Visible label
+            title=f"ID: {row['transaction_id']}\nAmount: ${row['transaction_amount']}\nDate: {row['transaction_date']}\n\% Diff: {row['amount_diff']}",  # Tooltip when hovering
+            label=f"{row['transaction_id']}\n\${row['transaction_amount']}\n{row['transaction_date']}\n{row['amount_diff']}",  # Visible label
             color="#FF9800"  # Orange edges
         )
 
