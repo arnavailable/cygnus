@@ -25,6 +25,17 @@ conn = snowflake.connector.connect(
 
 # Query to get data from Snowflake
 query = """
+WITH grouped_data AS (
+    SELECT
+        sender_account,
+        beneficiary_account,
+        SUM(transaction_amount) AS transaction_amount,
+        transaction_date,
+        MIN(transaction_id) AS transaction_id,
+    FROM "CYGNUS"."PUBLIC"."LOOPS"
+    GROUP BY sender_account, beneficiary_account, transaction_date
+    ORDER BY transaction_id
+),
 WITH transaction_paths AS (
     SELECT 
         sender_account AS start_account,
