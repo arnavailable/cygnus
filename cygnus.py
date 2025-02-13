@@ -31,7 +31,7 @@ WITH grouped_data AS (
         beneficiary_account,
         SUM(transaction_amount) AS transaction_amount,
         transaction_date,
-        MIN(transaction_id) AS transaction_id,
+        MIN(transaction_id) AS transaction_id
     FROM "CYGNUS"."PUBLIC"."LOOPS"
     GROUP BY sender_account, beneficiary_account, transaction_date
     ORDER BY transaction_id
